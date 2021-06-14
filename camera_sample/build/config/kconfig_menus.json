@@ -2099,6 +2099,16 @@
                         "range": null,
                         "title": "IBM Watson device topic",
                         "type": "string"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Topic structure required for device configuration",
+                        "id": "MQTT_CONFIG_TOPIC",
+                        "name": "MQTT_CONFIG_TOPIC",
+                        "range": null,
+                        "title": "IBM Watson device configuration topic",
+                        "type": "string"
                     }
                 ],
                 "depends_on": null,

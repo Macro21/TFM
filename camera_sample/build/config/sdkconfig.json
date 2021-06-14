@@ -523,6 +523,7 @@
     "MFN56_3X": false,
     "MFN56_4X": false,
     "MQTT_CLIENT_ID": "a:p468nr:a-p468nr-rhbjswi0sq",
+    "MQTT_CONFIG_TOPIC": "iot-2/type/ESP-EYE/id/ESP-EYE-001/evt/config/fmt/txt",
     "MQTT_CUSTOM_OUTBOX": false,
     "MQTT_HOST": "p468nr.messaging.internetofthings.ibmcloud.com",
     "MQTT_KEEPALIVE": 60,

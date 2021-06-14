@@ -38,8 +38,10 @@ char *TAG = "APP_MAIN";
 #define MQTT_USERNAME CONFIG_MQTT_USERNAME
 #define MQTT_PASSWORD CONFIG_MQTT_PASSWORD
 #define MQTT_HOST CONFIG_MQTT_HOST
+#define MQTT_CONFIG_TOPIC CONFIG_MQTT_CONFIG_TOPIC
 
 static esp_mqtt_client_handle_t client;
+static esp_timer_handle_t take_sample_timer;
 
 void mqtt_error_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
@@ -53,13 +55,33 @@ void mqtt_disconnected_event_handler()
     ESP_LOGW(TAG, "Dispositivo desconectado del broker de MQTT\n");
 }
 
+void mqtt_data_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
+{
+    esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t)event_data;
+    ESP_LOGI(TAG, "Cambiando tiempo de muestreo a %d segundos.", atoi(event->data));
+
+    ESP_ERROR_CHECK(esp_timer_stop(take_sample_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(take_sample_timer, (atoi(event->data) * 1000000)));
+}
+
 void mqtt_connected_event_handler()
 {
     ESP_LOGI(TAG, "Conexión establecida con IBM Watson IoT.\n");
+    char str[10];
+    sprintf(str, "%d", SAMPLE_FREQ);
+    int err = esp_mqtt_client_publish(client, MQTT_CONFIG_TOPIC, str, strlen(str), 2, 1);
+    if (err < 0)
+    {
+        ESP_LOGE(TAG, "Error al enviar los parámetros por MQTT \n");
+    }
+
+    err = esp_mqtt_client_subscribe(client, MQTT_CONFIG_TOPIC, 1);
+    if (err < 0)
+    {
+        ESP_LOGE(TAG, "Error al suscribirse a la configuracion por MQTT \n");
+    }
 
     ESP_LOGI(TAG, "Clasificación de residuos en proceso...\n");
-
-    esp_timer_handle_t take_sample_timer;
 
     // Configuración timer que toma muestras
     const esp_timer_create_args_t take_sample_timer_args = {
@@ -77,6 +99,7 @@ void mqtt_connect_to_broker(void *connected_callback, void *disconnected_callbac
 {
     char uri_buf[256];
     snprintf(uri_buf, sizeof(uri_buf), "%s%s%s%s%s%s", "mqtt://", MQTT_USERNAME, ":", MQTT_PASSWORD, "@", MQTT_HOST);
+    esp_log_level_set("*", ESP_LOG_INFO);
 
     //strcat("mqtt://", MQTT_USERNAME, ":", MQTT_PASSWORD, "@", MQTT_HOST);
     esp_mqtt_client_config_t mqtt_cfg = {
@@ -95,6 +118,7 @@ void mqtt_connect_to_broker(void *connected_callback, void *disconnected_callbac
     esp_mqtt_client_register_event(client, MQTT_EVENT_ERROR, mqtt_error_event_handler, client);
     esp_mqtt_client_register_event(client, MQTT_EVENT_CONNECTED, connected_callback, client);
     esp_mqtt_client_register_event(client, MQTT_EVENT_DISCONNECTED, disconnected_callback, client);
+    esp_mqtt_client_register_event(client, MQTT_EVENT_DATA, mqtt_data_event_handler, client);
 }
 
 void wifi_connected_event_handler()
@@ -110,6 +134,7 @@ void wifi_connected_event_handler()
     ESP_LOGI(TAG, "Fecha sincronizada correctamente. \n");
 
     ESP_LOGI(TAG, "Conectando con IBM Watson IoT...\n");
+
     mqtt_connect_to_broker((void *)mqtt_connected_event_handler, (void *)mqtt_disconnected_event_handler);
 }
 

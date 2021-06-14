@@ -59,6 +59,7 @@
 #define CONFIG_MQTT_PASSWORD "lW&gyr+6+(tZfBpUcP"
 #define CONFIG_MQTT_HOST "p468nr.messaging.internetofthings.ibmcloud.com"
 #define CONFIG_GARBAGE_CLASSIFICATION_TOPIC "iot-2/type/ESP-EYE/id/ESP-EYE-001/evt/event/fmt/txt"
+#define CONFIG_MQTT_CONFIG_TOPIC "iot-2/type/ESP-EYE/id/ESP-EYE-001/evt/config/fmt/txt"
 #define CONFIG_COMPILER_OPTIMIZATION_DEFAULT 1
 #define CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_ENABLE 1
 #define CONFIG_COMPILER_STACK_CHECK_MODE_NONE 1
